@@ -9,10 +9,14 @@ authors = [
 ]
 {% endif %}
 requires-python = ">=3.15"
-dependencies = []
+dependencies = ["cryptography>=46"]
 
-[project.scripts]
-{{ slug }} = "{{ identifier }}:main"
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.21",
+    "pre-commit>=4.5.1",
+]
 
 [build-system]
 requires = ["uv_build>=0.13.0,<0.14.0"]
