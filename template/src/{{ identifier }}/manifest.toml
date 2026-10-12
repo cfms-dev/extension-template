@@ -1,0 +1,14 @@
+manifest_version = 3
+
+[extension]
+identifier = "{{ identifier }}"
+name = "{{ name }}"
+version = "0.1.0"
+authors = ["{{ author_name }}"]
+license = "{{ license }}"
+description = "A sample extension with a manifest file."
+
+[compatibility]
+minimum_server_version = "0.11.1"
+
+[dependencies.extensions]

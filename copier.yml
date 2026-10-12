@@ -24,3 +24,27 @@ author_email:
   type: str
   default: "{{ 'git config --get user.email' | shell | trim }}"
   when: false
+
+license:
+  type: str
+  help: Choose a license for your extension.
+  choices:
+    MIT: MIT
+    Apache 2.0: Apache-2.0
+    BSD 3-Clause: BSD-3-Clause
+    GNU GPL v3.0: GPL-3.0-only
+    No license: none
+  default: Apache-2.0
+
+copyright_year:
+  type: str
+  default: "{{ copyright_year | default('%Y' | strftime) }}"
+  when: false
+
+copyright_holder:
+  type: str
+  default: "{{ author_name }}"
+  help: Name of the person or organization holding the copyright.
+
+_exclude:
+  - "{% if license == 'none' %}LICENSE{% endif %}"
