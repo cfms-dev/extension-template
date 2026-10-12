@@ -1,5 +1,7 @@
 # Official Extension Template for CFMS
 
+[![Copier](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/copier-org/copier/master/img/badge/badge-grayscale-inverted-border.json)](https://github.com/copier-org/copier)
+
 This is a template designed for the development of server-side extensions for CFMS on Websocket projects; it enables the quick creation of new extension projects using `copier` and offers built-in, robust support for server-side integration testing.
 
 ## Usage
