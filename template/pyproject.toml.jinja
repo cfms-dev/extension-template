@@ -1,0 +1,19 @@
+[project]
+name = "{{ slug }}"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+{% if author_name or author_email %}
+authors = [
+    { {% if author_name %}name = {{ author_name | tojson }}{% endif %}{% if author_name and author_email %}, {% endif %}{% if author_email %}email = {{ author_email | tojson }}{% endif %} },
+]
+{% endif %}
+requires-python = ">=3.15"
+dependencies = []
+
+[project.scripts]
+{{ slug }} = "{{ identifier }}:main"
+
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14.0"]
+build-backend = "uv_build"

@@ -1,0 +1,26 @@
+_subdirectory: template
+_jinja_extensions:
+  - jinja2_shell_extension.ShellExtension
+
+slug:
+  type: str
+  help: Extension project slug
+
+identifier:
+  type: str
+  default: "{{ slug | replace('-', '_') }}"
+  help: Python package identifier
+
+name:
+  type: str
+  help: Extension name
+
+author_name:
+  type: str
+  default: "{{ 'git config --get user.name' | shell | trim }}"
+  when: false
+
+author_email:
+  type: str
+  default: "{{ 'git config --get user.email' | shell | trim }}"
+  when: false
