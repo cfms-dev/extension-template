@@ -7,10 +7,10 @@ from _project import discover_extension
 
 
 def build(root: Path) -> Path:
-    package = discover_extension(root)[0]
+    package, identifier = discover_extension(root)
     manifest = tomllib.loads((package / "manifest.toml").read_text(encoding="utf-8"))
 
-    output = root / "dist" / f"{package.name}-{manifest['extension']['version']}.zip"
+    output = root / "dist" / f"{identifier}-{manifest['extension']['version']}.zip"
     output.parent.mkdir(exist_ok=True)
     members = [
         (path, path.relative_to(package).as_posix())

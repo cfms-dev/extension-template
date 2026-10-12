@@ -1,0 +1,18 @@
+name: Resolve CFMS version
+description: Resolve the minimum compatible CFMS server version
+
+outputs:
+  version:
+    description: Minimum compatible server version
+    value: ${{ steps.resolve.outputs.version }}
+  ref:
+    description: Git ref for the compatible server release
+    value: ${{ steps.resolve.outputs.ref }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve version
+      id: resolve
+      shell: bash
+      run: python "$GITHUB_WORKSPACE/scripts/resolve_cfms_ref.py"

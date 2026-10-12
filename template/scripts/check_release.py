@@ -38,10 +38,6 @@ def check_version(root: Path, tag: str) -> tuple[str, str]:
         "manifest.toml": tomllib.loads(
             (package / "manifest.toml").read_text(encoding="utf-8")
         )["extension"]["version"],
-        **{
-            name: module_version((package / name).read_text(encoding="utf-8"))
-            for name in ("__init__.py", "_extension.py")
-        },
     }
 
     for name, declared in versions.items():

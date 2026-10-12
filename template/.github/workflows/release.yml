@@ -1,0 +1,145 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.15"
+  UV_VERSION: "0.12.7"
+
+jobs:
+  validate:
+    name: Validate release version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Check tag and source versions
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python tools/check_release.py "${RELEASE_TAG}"
+
+  test:
+    name: Run tests
+    needs: validate
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  release:
+    name: Build and publish extension
+    needs: [validate, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        id: python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        env:
+          UV_PYTHON: ${{ steps.python.outputs.python-path }}
+        run: uv sync --locked --dev
+
+      - name: Build extension archive
+        run: uv run --locked --no-sync python tools/build_extension.py
+
+      - name: Verify release archive
+        run: python tools/check_release.py "${RELEASE_TAG}" --archive
+
+      - name: Resolve release assets
+        id: assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          archives=(dist/*.zip)
+          checksums=(dist/*.zip.sha256)
+
+          if (( ${#archives[@]} != 1 || ${#checksums[@]} != 1 )); then
+            echo "::error::Expected exactly one ZIP and one SHA-256 file"
+            exit 1
+          fi
+
+          if [[ "${checksums[0]}" != "${archives[0]}.sha256" ]]; then
+            echo "::error::Archive and checksum filenames do not match"
+            exit 1
+          fi
+
+          filename="${archives[0]##*/}"
+
+          {
+            echo "name=${filename%.zip}"
+            echo "archive=${archives[0]}"
+            echo "checksum=${checksums[0]}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Save release artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.assets.outputs.name }}
+          path: |
+            ${{ steps.assets.outputs.archive }}
+            ${{ steps.assets.outputs.checksum }}
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ARCHIVE: ${{ steps.assets.outputs.archive }}
+          CHECKSUM: ${{ steps.assets.outputs.checksum }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          assets=("${ARCHIVE}" "${CHECKSUM}")
+
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release upload "${RELEASE_TAG}" "${assets[@]}" --clobber
+          else
+            gh release create "${RELEASE_TAG}" "${assets[@]}" \
+              --verify-tag \
+              --title "${RELEASE_TAG}" \
+              --generate-notes
+          fi
