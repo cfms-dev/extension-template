@@ -32,10 +32,13 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Synchronize manifest version
+        run: python scripts/sync_version.py
+
       - name: Check tag and source versions
         env:
           RELEASE_TAG: ${{ github.ref_name }}
-        run: python tools/check_release.py "${RELEASE_TAG}"
+        run: python scripts/check_release.py "${RELEASE_TAG}"
 
   test:
     name: Run tests
@@ -80,10 +83,10 @@ jobs:
         run: uv sync --locked --dev
 
       - name: Build extension archive
-        run: uv run --locked --no-sync python tools/build_extension.py
+        run: uv run --locked --no-sync python scripts/build_extension.py
 
       - name: Verify release archive
-        run: python tools/check_release.py "${RELEASE_TAG}" --archive
+        run: python scripts/check_release.py "${RELEASE_TAG}" --archive
 
       - name: Resolve release assets
         id: assets

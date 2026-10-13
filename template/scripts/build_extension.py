@@ -4,9 +4,11 @@ import zipfile
 from pathlib import Path
 
 from _project import discover_extension
+from sync_version import sync_version
 
 
 def build(root: Path) -> Path:
+    sync_version(root)
     package, identifier = discover_extension(root)
     manifest = tomllib.loads((package / "manifest.toml").read_text(encoding="utf-8"))
 
@@ -22,6 +24,7 @@ def build(root: Path) -> Path:
     members.extend(
         (root / path, path)
         for path in ("README.md", "LICENSE", "config.example.toml", "docs/FORMAT.md")
+        if (root / path).is_file()
     )
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for path, name in sorted(members, key=lambda pair: pair[1]):

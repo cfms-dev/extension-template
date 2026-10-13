@@ -48,6 +48,8 @@ jobs:
         env:
           UV_PYTHON: ${{ steps.python.outputs.python-path }}
         run: uv sync --locked --dev
+      - name: Synchronize manifest version
+        run: python scripts/sync_version.py
       - name: Run independent tests
         run: uv run --locked --no-sync pytest -q --ignore=tests/test_integration.py --junitxml=test_logs/junit.xml
       - name: Upload test report
@@ -75,6 +77,9 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Synchronize manifest version
+        run: python scripts/sync_version.py
 
       - name: Resolve CFMS version
         id: cfms

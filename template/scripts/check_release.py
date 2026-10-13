@@ -1,7 +1,6 @@
 """Validate release metadata and ZIP without importing the extension runtime."""
 
 import argparse
-import ast
 import hashlib
 import re
 import tomllib
@@ -9,19 +8,6 @@ import zipfile
 from pathlib import Path
 
 from _project import discover_extension
-
-
-def module_version(source: str) -> str:
-    for statement in ast.parse(source).body:
-        if isinstance(statement, ast.Assign) and any(
-            isinstance(target, ast.Name) and target.id == "__version__"
-            for target in statement.targets
-        ):
-            value = ast.literal_eval(statement.value)
-            if isinstance(value, str):
-                return value
-
-    raise ValueError("Missing literal __version__ assignment")
 
 
 def check_version(root: Path, tag: str) -> tuple[str, str]:
@@ -73,8 +59,8 @@ def check_archive(root: Path, version: str, identifier: str) -> Path:
             raise ValueError("Archive manifest version does not match release")
 
         for name in ("__init__.py", "_extension.py"):
-            if module_version(archive.read(name).decode("utf-8")) != version:
-                raise ValueError(f"Archive {name} version does not match release")
+            if name not in archive.namelist():
+                raise ValueError(f"Archive is missing {name}")
 
     return path
 

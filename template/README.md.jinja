@@ -1,3 +1,17 @@
 # {{ name }}
 
 This is a README file automatically generated from the official extension template of CFMS. You can modify this file to reflect the actual details of your project. Happy coding!
+
+## Versioning and releases
+
+`pyproject.toml` is the source of truth for the extension version. Update it with
+`uv version` and create a matching `vX.Y.Z` tag to release.
+
+CI overwrites `[extension].version` in `src/{{ identifier }}/manifest.toml` before
+testing and publishing. The committed manifest version is an initial value; it
+does not need to be updated manually. Run `python scripts/sync_version.py` before
+local testing or loading the extension into CFMS.
+
+`python scripts/build_extension.py` also synchronizes the manifest before creating
+`dist/{{ identifier }}-<version>.zip` and its SHA-256 checksum. The release workflow
+checks the tag, project version, manifest, archive, and checksum before publishing.
